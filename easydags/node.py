@@ -15,10 +15,12 @@ exec_nodes: List["ExecNode"] = []
 exec_nodes_lock = Lock()
 from datetime import datetime
 
+
 class ExecNode:
     """
     This class is the base executable node of the Directed Acyclic Execution Graph
     """
+
     def __init__(
         self,
         id_: Hashable,
@@ -44,14 +46,12 @@ class ExecNode:
              Defaults to False.
         """
 
-
-
         self.id = id_
         self.exec_function = exec_function
 
         depends_on = depends_on_hard.copy()
         depends_on.extend(depends_on_soft)
-        self.depends_on = depends_on 
+        self.depends_on = depends_on
         self.depends_on_hard = depends_on_hard
         self.priority: int = priority
         self.compound_priority: int = priority
@@ -66,10 +66,10 @@ class ExecNode:
         if isinstance(output_name, str) and output_name != "":
             self.argument_name = output_name
         else:
-            #self.argument_name = (
+            # self.argument_name = (
             #    self.id.__name__ if isinstance(self.id, FunctionType) else str(self.id)
-            #)
-            self.argument_name = f'{str(self.id)}_result' 
+            # )
+            self.argument_name = f"{str(self.id)}_result"
 
         # todo remove and make ExecNode immutable
         self.result: Optional[Dict[str, Any]] = None
@@ -82,10 +82,12 @@ class ExecNode:
         return isinstance(self.depends_on, list)
 
     # this is breaking change however
-    def execute(self, 
-                node_dict: Dict[Hashable, "ExecNode"], 
-                debug: bool = True,
-                initial_time: str = datetime.now().strftime("%Y-%m-%d, %H:%M:%S")) -> Optional[Dict[str, Any]]:
+    def execute(
+        self,
+        node_dict: Dict[Hashable, "ExecNode"],
+        debug: bool = True,
+        initial_time: str = datetime.now().strftime("%Y-%m-%d, %H:%M:%S"),
+    ) -> Optional[Dict[str, Any]]:
         """
         Execute the ExecNode directly or according to an execution graph.
         Args:
@@ -100,74 +102,71 @@ class ExecNode:
             logger.debug(f"Start executing {self.id} with task {self.exec_function}")
 
         kwargs = {
-            node_dict[dep_hash].argument_name: node_dict[dep_hash].result['result']
+            node_dict[dep_hash].argument_name: node_dict[dep_hash].result["result"]
             for dep_hash in self.depends_on_hard
         }
 
         prev_states = {
-            node_dict[dep_hash].argument_name: node_dict[dep_hash].result['state']
+            node_dict[dep_hash].argument_name: node_dict[dep_hash].result["state"]
             for dep_hash in self.depends_on
         }
 
         prev_states = [x[1] for x in list(prev_states.items())]
-        
+
         result = {}
 
-        error = ''
+        error = ""
 
-        if len(prev_states)>0:
-            
-            
-            if (min(prev_states)==1): #all prev nodes are ok
-
-                i = 0 
+        if len(prev_states) > 0:
+            if min(prev_states) == 1:  # all prev nodes are ok
+                i = 0
 
                 while i < self.n_trials:
                     try:
-                        result['result'] = self.exec_function(**kwargs)
-                        result['state'] = 1
-                        result['message'] = 'Executed as expected' 
-                        break # no need for re-trials
+                        result["result"] = self.exec_function(**kwargs)
+                        result["state"] = 1
+                        result["message"] = "Executed as expected"
+                        break  # no need for re-trials
                     except:
-                        result['result'] = None
-                        result['state'] = -1
-                        
+                        result["result"] = None
+                        result["state"] = -1
+
                         error = traceback.format_exc()
                         msg = f"The error when executing {self.id} on trial {i+1} : {error}"
-                        result['message'] = msg
+                        result["message"] = msg
                         logger.info(msg)
-                    i+=1
+                    i += 1
             else:
-                result['result'] = None
-                result['state'] = 0
-                result['message'] = 'Did not run'
+                result["result"] = None
+                result["state"] = 0
+                result["message"] = "Did not run"
 
         else:
-            i = 0 
+            i = 0
 
             while i < self.n_trials:
                 try:
-                    result['result'] = self.exec_function(**kwargs)
-                    result['state'] = 1
-                    result['message'] = 'Executed as expected' 
-                    break # no need for re-trials
+                    result["result"] = self.exec_function(**kwargs)
+                    result["state"] = 1
+                    result["message"] = "Executed as expected"
+                    break  # no need for re-trials
                 except:
-                    result['result'] = None
-                    result['state'] = -1     
+                    result["result"] = None
+                    result["state"] = -1
                     error = traceback.format_exc()
                     msg = f"The error when executing {self.id} on trial {i+1} : {error}"
-                    result['message'] = msg
+                    result["message"] = msg
                     logger.info(msg)
-                i+=1
+                i += 1
 
-        
-            
-
-        result['initial_time'] = initial_time
+        result["initial_time"] = initial_time
         final = datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
-        result['final_time'] = final
-        result['duration'] = (datetime.strptime(initial_time,"%Y-%m-%d, %H:%M:%S")-datetime.strptime(final,"%Y-%m-%d, %H:%M:%S")).total_seconds()
-        result['duration'] = str(-int(result['duration']))+ ' sec'
+        result["final_time"] = final
+        result["duration"] = (
+            datetime.strptime(initial_time, "%Y-%m-%d, %H:%M:%S")
+            - datetime.strptime(final, "%Y-%m-%d, %H:%M:%S")
+        ).total_seconds()
+        result["duration"] = str(-int(result["duration"])) + " sec"
 
         self.result = result
 
@@ -175,7 +174,6 @@ class ExecNode:
         if debug:
             logger.debug(f"Finished executing {self.id} with task {self.exec_function}")
         return result
-
 
 
 class PreComputedExecNode(ExecNode):
@@ -264,7 +262,9 @@ class LazyExecNode(ExecNode):
                 dependencies.append(arg.id)
             else:
                 # if the argument is a custom or constant
-                pre_c_exec_node = PreComputedExecNode(self.exec_function, argument_name, arg)
+                pre_c_exec_node = PreComputedExecNode(
+                    self.exec_function, argument_name, arg
+                )
                 exec_nodes.append(pre_c_exec_node)
                 dependencies.append(pre_c_exec_node.id)
 
