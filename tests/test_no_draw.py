@@ -1,11 +1,6 @@
-import sys, os
-
-myPath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, myPath + "/../")
-
-from easydags import ExecNode, DAG
 import time
-import networkx as nx
+
+from easydags import DAG, ExecNode
 
 
 def test_running_ok():
