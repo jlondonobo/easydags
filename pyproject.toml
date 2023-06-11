@@ -1,7 +1,39 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-log_cli = 1
-requires = [
-  "setuptools>=42",
-  "wheel",
+build-backend = "flit.buildapi"
+requires = ["flit"]
+
+[project]
+authors = [
+  {name = "Mateo Graciano", email = "magralo@gmail.com"},
+]
+name = "easydags"
+version = "0.0.7"
+
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Operating System :: MacOS :: MacOS X",
+]
+description = "Dags made easy"
+keywords = ['dags', 'python']
+readme = "README.md"
+requires-python = ">=3.7"
+
+dependencies = [
+  "networkx==2.6.3",
+  "pydantic==1.10",
+  "loguru==0.6.0",
+  "matplotlib==3.6.3",
+  "pyvis==0.3.1",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest >=7.1.3,<8.0.0",
+  "pytest-mock ==3.10.0",
+  "ruff ==0.0.267",
+  "isort >=5.0.6,<6.0.0",
+  "black == 23.1.0",
+  "flit ==3.9.0",
 ]
